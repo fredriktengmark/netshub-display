@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1024, height=600, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Hub Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+  <style>
+    body {
+      width: 1024px;
+      height: 600px;
+      overflow: hidden;
+      user-select: none;
+      background-color: #120d0a;
+      color: #dfd2be;
+      font-family: 'Special Elite', monospace;
+    }
+    .font-western { font-family: 'Rye', serif; }
+    .western-panel {
+      background-color: #1c140e;
+      border: 2px solid #5c3a21;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 4px 6px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body class="p-4 flex flex-col justify-between box-border">
+
+  <header class="western-panel rounded-lg px-6 py-3 flex items-center justify-between">
+    <div>
+      <div id="time" class="text-6xl font-western text-amber-500 tracking-wider">--:--</div>
+      <div id="date" class="text-base text-amber-200/70 capitalize mt-1">Laddar datum...</div>
+    </div>
+    <div class="text-right">
+      <span class="text-xs uppercase tracking-widest text-amber-600 block">Outpost Hub</span>
+      <span class="text-sm text-stone-400">Småland • SE3</span>
+    </div>
+  </header>
+
+  <main class="grid grid-cols-3 gap-4 my-auto h-[340px]">
+    
+    <div class="western-panel rounded-lg p-4 flex flex-col justify-between">
+      <div class="border-b border-amber-900/50 pb-1">
+        <h2 class="text-amber-500 font-western text-lg tracking-wide">Väder (SMHI)</h2>
+        <span class="text-xs text-stone-400">Värnamo Omnejd</span>
+      </div>
+      <div class="my-auto text-center">
+        <div id="weather-temp" class="text-5xl font-western text-stone-100">--°C</div>
+        <div id="weather-desc" class="text-sm text-amber-300/80 mt-2">Hämtar data...</div>
+      </div>
+      <div class="text-xs text-stone-400 flex justify-between border-t border-amber-900/40 pt-2">
+        <span>Vind: <strong id="weather-wind" class="text-stone-200">-- m/s</strong></span>
+        <span id="weather-updated">--:--</span>
+      </div>
+    </div>
+
+    <div class="western-panel rounded-lg p-4 flex flex-col justify-between">
+      <div class="border-b border-amber-900/50 pb-1 flex justify-between items-end">
+        <h2 class="text-amber-500 font-western text-lg tracking-wide">Spotpris</h2>
+        <span class="text-xs text-amber-700 font-bold">SE3</span>
+      </div>
+      <div class="my-auto text-center">
+        <div id="price-current" class="text-5xl font-western text-amber-400">--</div>
+        <div class="text-xs uppercase tracking-widest text-stone-400 mt-1">Öre / kWh</div>
+      </div>
+      <div class="grid grid-cols-2 text-center text-xs border-t border-amber-900/40 pt-2 gap-2 text-stone-300">
+        <div class="bg-black/40 rounded p-1">Min: <span id="price-min" class="text-emerald-400">--</span></div>
+        <div class="bg-black/40 rounded p-1">Max: <span id="price-max" class="text-rose-400">--</span></div>
+      </div>
+    </div>
+
+    <div class="western-panel rounded-lg p-4 flex flex-col justify-between">
+      <div class="border-b border-amber-900/50 pb-1">
+        <h2 class="text-amber-500 font-western text-lg tracking-wide">Saloon Radio</h2>
+        <span class="text-xs text-stone-400">Go Country 105</span>
+      </div>
+      <div class="my-auto flex flex-col items-center">
+        <audio id="radio-audio" preload="none">
+          <source src="https://stream.revma.ihrhls.com/zc7477" type="audio/mpeg">
+        </audio>
+        <button id="radio-btn" onclick="toggleRadio()" class="w-20 h-20 rounded-full border-2 border-amber-600 bg-amber-950/60 hover:bg-amber-900/80 active:scale-95 flex items-center justify-center transition shadow-lg">
+          <span id="radio-icon" class="text-amber-400 text-3xl ml-1">▶</span>
+        </button>
+        <span id="radio-status" class="text-xs text-stone-400 mt-3">Avstängd</span>
+      </div>
+      <div class="text-[11px] text-stone-500 text-center border-t border-amber-900/40 pt-2">
+        Klicka för att starta ljudström
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="text-center text-[10px] text-amber-900 tracking-widest uppercase">
+    Standby Screen • Automated Kiosk Mode
+  </footer>
+
+  <script>
+    // 1. KLOCKA & DATUM
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('time').innerText = now.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('date').innerText = now.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 2. SMHI VÄDER (Koordinater för Värnamo/Småland: Lat 57.18, Lon 14.04)
+    const SMHI_WEATHER_CODES = {
+      1: "Klart", 2: "Mestadels klart", 3: "Halvklart", 4: "Halvmulet",
+      5: "Molnigt", 6: "Mulet", 7: "Dimma", 8: "Lätta regnskurar",
+      9: "Måttliga regnskurar", 10: "Kraftiga regnskurar", 11: "Åskskurar",
+      18: "Lätt regn", 19: "Måttligt regn", 20: "Kraftigt regn"
+    };
+
+    async function fetchWeather() {
+      try {
+        const res = await fetch("https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/14.04/lat/57.18/data.json");
+        const data = await res.json();
+        const firstForecast = data.timeSeries[0];
+        
+        const getParam = (name) => firstForecast.parameters.find(p => p.name === name)?.values[0];
+        
+        const temp = Math.round(getParam('t'));
+        const wind = getParam('ws');
+        const symbol = getParam('Wsymb2');
+
+        document.getElementById('weather-temp').innerText = `${temp}°C`;
+        document.getElementById('weather-wind').innerText = `${wind} m/s`;
+        document.getElementById('weather-desc').innerText = SMHI_WEATHER_CODES[symbol] || "Växlande molnighet";
+        document.getElementById('weather-updated').innerText = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+      } catch (err) {
+        document.getElementById('weather-desc').innerText = "Kunde ej hämta väder";
+      }
+    }
+    fetchWeather();
+    setInterval(fetchWeather, 10 * 60 * 1000); // Var 10:e minut
+
+    // 3. ELPRISER (SE3 - Södra Mellansverige)
+    async function fetchPowerPrice() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      
+      try {
+        const res = await fetch(`https://www.elprisetjustnu.se/api/v1/prices/${year}/${month}-${day}_SE3.json`);
+        const prices = await res.json();
+
+        // Konvertera SEK/kWh till Öre/kWh
+        const currentHour = now.getHours();
+        const currentData = prices.find(p => new Date(p.time_start).getHours() === currentHour) || prices[0];
+        const oreValues = prices.map(p => Math.round(p.SEK_per_kWh * 100));
+
+        document.getElementById('price-current').innerText = Math.round(currentData.SEK_per_kWh * 100);
+        document.getElementById('price-min').innerText = `${Math.min(...oreValues)} öre`;
+        document.getElementById('price-max').innerText = `${Math.max(...oreValues)} öre`;
+      } catch (err) {
+        document.getElementById('price-current').innerText = "N/A";
+      }
+    }
+    fetchPowerPrice();
+    setInterval(fetchPowerPrice, 15 * 60 * 1000); // Var 15:e minut
+
+    // 4. WEBRADIO
+    const audio = document.getElementById('radio-audio');
+    const radioBtn = document.getElementById('radio-btn');
+    const radioIcon = document.getElementById('radio-icon');
+    const radioStatus = document.getElementById('radio-status');
+
+    function toggleRadio() {
+      if (audio.paused) {
+        audio.play().then(() => {
+          radioIcon.innerText = "❚❚";
+          radioIcon.classList.remove('ml-1');
+          radioStatus.innerText = "Spelar nu...";
+          radioStatus.classList.add('text-amber-400');
+        }).catch(() => {
+          radioStatus.innerText = "Kunde ej ansluta";
+        });
+      } else {
+        audio.pause();
+        radioIcon.innerText = "▶";
+        radioIcon.classList.add('ml-1');
+        radioStatus.innerText = "Pausad";
+        radioStatus.classList.remove('text-amber-400');
+      }
+    }
+
+    // 5. FÖRHINDRA AVSTÄNGNING (WAKE LOCK API)
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').catch(() => {});
+    }
+  </script>
+</body>
+</html>
