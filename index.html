@@ -3,245 +3,489 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1024, height=600, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Western Outpost Hub</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Western Outpost Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Sancreek&family=Special+Elite&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-dark: #120e0b;
+      --panel-bg: #1c1510;
+      --wood-border: #442a1a;
+      --brass: #c89b3c;
+      --brass-dim: #7a5f25;
+      --parchment: #d6c6a2;
+      --text-muted: #8b7965;
+      --active-glow: #e07a1e;
+    }
+
     * {
       box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0;
+      user-select: none;
     }
+
     body {
       width: 1024px;
       height: 600px;
-      margin: 0;
-      padding: 16px;
       overflow: hidden;
-      user-select: none;
-      background-color: #0d0907;
-      color: #dfd2be;
+      background-color: var(--bg-dark);
+      background-image: radial-gradient(circle at center, #241913 0%, #0d0907 100%);
+      color: var(--parchment);
       font-family: 'Special Elite', monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .font-western {
+
+    .dashboard {
+      width: 1024px;
+      height: 600px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 370px 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 2px solid var(--brass-dim);
+      outline: 1px solid var(--wood-border);
+      outline-offset: -4px;
+      border-radius: 4px;
+      padding: 14px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-title {
       font-family: 'Rye', serif;
+      font-size: 15px;
+      color: var(--brass);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 1px dashed var(--brass-dim);
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .saloon-card {
-      background: radial-gradient(circle at top left, #241710, #150e0a);
-      border: 2px solid #543319;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 6px 12px rgba(0,0,0,0.7);
+
+    /* Vänster kolumn */
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
     }
-    .action-btn {
-      background: linear-gradient(180deg, #331e13 0%, #1c100a 100%);
-      border: 1px solid #7c4822;
-      transition: transform 0.1s, border-color 0.1s, background-color 0.1s;
+
+    .clock-panel {
+      padding: 10px 14px;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
     }
-    .action-btn:active {
-      transform: scale(0.97);
-      border-color: #f59e0b;
-      background: #472615;
+
+    .time-display {
+      font-family: 'Rye', serif;
+      font-size: 52px;
+      color: var(--brass);
+      text-shadow: 0 0 10px rgba(200, 155, 60, 0.3);
+      line-height: 1;
+    }
+
+    .date-display {
+      font-size: 13px;
+      color: var(--parchment);
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .weather-panel {
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .weather-current {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .weather-temp {
+      font-family: 'Rye', serif;
+      font-size: 38px;
+      color: var(--parchment);
+    }
+
+    .weather-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    .weather-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 10px;
+      border-top: 1px solid #2d2017;
+      padding-top: 6px;
+      font-size: 11px;
+    }
+
+    .weather-val {
+      color: var(--brass);
+      font-weight: bold;
+    }
+
+    /* 5-Dagarsprognos */
+    .forecast-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--brass-dim);
+      letter-spacing: 1px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      border-top: 1px dashed #2d2017;
+      padding-top: 6px;
+    }
+
+    .forecast-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+
+    .forecast-day {
+      background: #150f0c;
+      border: 1px solid #3d2b1d;
+      border-radius: 3px;
+      padding: 6px 2px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      height: 76px;
+    }
+
+    .fc-name {
+      font-size: 11px;
+      color: var(--parchment);
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .fc-icon {
+      font-size: 15px;
+      margin: 2px 0;
+    }
+
+    .fc-temps {
+      font-size: 10px;
+      line-height: 1.1;
+    }
+
+    .fc-max {
+      color: var(--brass);
+      font-weight: bold;
+    }
+
+    .fc-min {
+      color: var(--text-muted);
+    }
+
+    /* Höger kolumn: Hemstyrning */
+    .controls-panel {
+      height: 100%;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 12px;
+      flex: 1;
+    }
+
+    .btn-card {
+      background: #150f0c;
+      border: 1px solid #3d2b1d;
+      border-radius: 4px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-card.active {
+      border-color: var(--active-glow);
+      box-shadow: inset 0 0 15px rgba(224, 122, 30, 0.2), 0 0 8px rgba(224, 122, 30, 0.3);
+    }
+
+    .btn-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-icon {
+      font-size: 22px;
+      opacity: 0.75;
+    }
+
+    .btn-card.active .btn-icon {
+      opacity: 1;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #332219;
+    }
+
+    .btn-card.active .status-dot {
+      background: var(--active-glow);
+      box-shadow: 0 0 6px var(--active-glow);
+    }
+
+    .btn-name {
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--parchment);
+    }
+
+    .btn-status-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .btn-card.active .btn-status-text {
+      color: var(--brass);
     }
   </style>
 </head>
-<body class="flex flex-col justify-between h-full">
+<body>
 
-  <header class="saloon-card rounded-lg px-8 py-3 flex items-center justify-between">
-    <div>
-      <div id="live-clock" class="text-6xl font-western text-amber-500 tracking-wider">--:--</div>
-      <div id="live-date" class="text-sm text-amber-200/60 capitalize mt-1 tracking-wide">Hämtar datum...</div>
-    </div>
-    <div class="text-right">
-      <div class="text-xs uppercase tracking-widest text-amber-600 font-bold">Western Kiosk</div>
-      <div class="text-sm text-stone-400 mt-1">Värnamo • Sverige</div>
-    </div>
-  </header>
-
-  <main class="grid grid-cols-2 gap-4 h-[370px]">
-
-    <section class="saloon-card rounded-lg p-6 flex flex-col justify-between">
-      <div class="border-b border-amber-900/40 pb-2 flex justify-between items-center">
-        <h2 class="text-amber-500 font-western text-xl tracking-wide">Väderläge</h2>
-        <span id="weather-status-tag" class="text-xs text-stone-500">Live</span>
+  <div class="dashboard">
+    <!-- Vänster sektion -->
+    <div class="left-col">
+      <div class="panel clock-panel">
+        <div class="time-display" id="time">--:--</div>
+        <div class="date-display" id="date">Laddar datum...</div>
       </div>
 
-      <div class="grid grid-cols-2 items-center my-auto">
-        <div class="text-center border-r border-amber-900/30 pr-4">
-          <div id="temp-display" class="text-7xl font-western text-stone-100 tracking-tight">--°</div>
-          <div id="condition-display" class="text-base text-amber-400/90 mt-2 font-western tracking-wide">Läser av...</div>
+      <div class="panel weather-panel">
+        <div>
+          <div class="panel-title">
+            <span>Värnamo Utpost</span>
+            <span style="font-size: 10px; color: var(--text-muted);">METEO NORD</span>
+          </div>
+          <div class="weather-current">
+            <div class="weather-temp" id="temp">--°C</div>
+            <div class="weather-desc" id="weather-text">Hämtar data...</div>
+          </div>
+          <div class="weather-details">
+            <div>Vind: <span class="weather-val" id="wind">-- m/s</span></div>
+            <div>Fukt: <span class="weather-val" id="humidity">--%</span></div>
+            <div>Nederbörd: <span class="weather-val" id="precip">-- mm</span></div>
+            <div>Riktning: <span class="weather-val" id="wind-dir">--</span></div>
+          </div>
         </div>
-        
-        <div class="pl-6 space-y-3 text-sm text-stone-300">
-          <div class="flex justify-between">
-            <span class="text-stone-500">Känns som:</span>
-            <strong id="apparent-display" class="text-stone-200">--°C</strong>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-stone-500">Vindhastighet:</span>
-            <strong id="wind-display" class="text-stone-200">-- m/s</strong>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-stone-500">Fuktighet:</span>
-            <strong id="humidity-display" class="text-stone-200">--%</strong>
+
+        <div>
+          <div class="forecast-title">5-Dagarsprognos</div>
+          <div class="forecast-strip" id="forecast-container">
+            <!-- 5 dagar renderas via JS -->
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="border-t border-amber-900/40 pt-2 flex justify-between text-xs text-stone-500">
-        <span>Källa: Open-Meteo</span>
-        <span>Uppdaterad: <span id="weather-sync-time" class="text-stone-400">--:--</span></span>
+    <!-- Höger sektion: Styrpanel -->
+    <div class="panel controls-panel">
+      <div class="panel-title">
+        <span>Kontrollpanel // Kvarteret</span>
+        <span style="font-size: 11px; color: var(--brass-dim);">SYSTEM: ONLINE</span>
       </div>
-    </section>
+      <div class="control-grid">
+        <div class="btn-card" onclick="toggleSwitch(this)">
+          <div class="btn-header">
+            <span class="btn-icon">💡</span>
+            <div class="status-dot"></div>
+          </div>
+          <div>
+            <div class="btn-name">Saloon Ljus</div>
+            <div class="btn-status-text">FRÅN</div>
+          </div>
+        </div>
 
-    <section class="saloon-card rounded-lg p-6 flex flex-col justify-between">
-      <div class="border-b border-amber-900/40 pb-2 flex justify-between items-center">
-        <h2 class="text-amber-500 font-western text-xl tracking-wide">Hemstyrning</h2>
-        <span id="hub-indicator" class="text-xs text-amber-500/80">Redo</span>
+        <div class="btn-card" onclick="toggleSwitch(this)">
+          <div class="btn-header">
+            <span class="btn-icon">🪵</span>
+            <div class="status-dot"></div>
+          </div>
+          <div>
+            <div class="btn-name">Kamin / Fläkt</div>
+            <div class="btn-status-text">FRÅN</div>
+          </div>
+        </div>
+
+        <div class="btn-card" onclick="toggleSwitch(this)">
+          <div class="btn-header">
+            <span class="btn-icon">🏮</span>
+            <div class="status-dot"></div>
+          </div>
+          <div>
+            <div class="btn-name">Verandalampor</div>
+            <div class="btn-status-text">FRÅN</div>
+          </div>
+        </div>
+
+        <div class="btn-card active" onclick="toggleSwitch(this)">
+          <div class="btn-header">
+            <span class="btn-icon">📻</span>
+            <div class="status-dot"></div>
+          </div>
+          <div>
+            <div class="btn-name">Trådlös Radio</div>
+            <div class="btn-status-text">TILL</div>
+          </div>
+        </div>
+
+        <div class="btn-card" onclick="toggleSwitch(this)">
+          <div class="btn-header">
+            <span class="btn-icon">🔒</span>
+            <div class="status-dot"></div>
+          </div>
+          <div>
+            <div class="btn-name">Gårdslås</div>
+            <div class="btn-status-text">FRÅN</div>
+          </div>
+        </div>
+
+        <div class="btn-card active" onclick="toggleSwitch(this)">
+          <div class="btn-header">
+            <span class="btn-icon">⚡</span>
+            <div class="status-dot"></div>
+          </div>
+          <div>
+            <div class="btn-name">Verkstad 230V</div>
+            <div class="btn-status-text">TILL</div>
+          </div>
+        </div>
       </div>
-
-      <div class="grid grid-cols-2 gap-3 my-auto">
-        <button onclick="sendDeviceCommand('light_on')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
-          <div class="flex items-center space-x-2">
-            <span class="text-xl">💡</span>
-            <span class="text-amber-400 font-bold text-sm tracking-wide">Tänd Allt</span>
-          </div>
-          <span class="text-[11px] text-stone-400">Huvudbelysning På</span>
-        </button>
-
-        <button onclick="sendDeviceCommand('light_off')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
-          <div class="flex items-center space-x-2">
-            <span class="text-xl">🌙</span>
-            <span class="text-stone-300 font-bold text-sm tracking-wide">Släck Allt</span>
-          </div>
-          <span class="text-[11px] text-stone-500">Stäng av belysning</span>
-        </button>
-
-        <button onclick="sendDeviceCommand('scene_cozy')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
-          <div class="flex items-center space-x-2">
-            <span class="text-xl">🔥</span>
-            <span class="text-amber-500 font-bold text-sm tracking-wide">Myskväll</span>
-          </div>
-          <span class="text-[11px] text-stone-400">Dämpade lampor</span>
-        </button>
-
-        <button onclick="sendDeviceCommand('scene_leave')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
-          <div class="flex items-center space-x-2">
-            <span class="text-xl">🚪</span>
-            <span class="text-amber-600 font-bold text-sm tracking-wide">Lämna Huset</span>
-          </div>
-          <span class="text-[11px] text-stone-400">Släck & säkra</span>
-        </button>
-      </div>
-
-      <div class="border-t border-amber-900/40 pt-2 text-center text-xs text-stone-500">
-        Google Assistant / HTTP Webhook Trigger
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="text-center text-[10px] text-amber-950 uppercase tracking-widest">
-    Kiosk View • 1024x600 • Standby Mode
-  </footer>
+    </div>
+  </div>
 
   <script>
-    // 1. KLOCKA & DATUM
-    function refreshClock() {
+    // Klocka
+    function updateClock() {
       const now = new Date();
-      document.getElementById('live-clock').innerText = now.toLocaleTimeString('sv-SE', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-      document.getElementById('live-date').innerText = now.toLocaleDateString('sv-SE', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long' 
-      });
-    }
-    setInterval(refreshClock, 1000);
-    refreshClock();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('time').textContent = `${hours}:${minutes}`;
 
-    // 2. VÄDER (OPEN-METEO UTAN NYCKEL ELLER CORS-STRUL)
-    const WEATHER_TEXTS = {
-      0: "Klart", 1: "Mestadels klart", 2: "Halvklart", 3: "Mulet",
-      45: "Dimma", 48: "Rimfrost", 51: "Lätt duggregn", 53: "Duggregn",
-      55: "Kraftigt duggregn", 61: "Lätt regn", 63: "Regn", 65: "Kraftigt regn",
-      71: "Lätt snö", 73: "Snöfall", 75: "Ymnigt snöfall",
-      80: "Regnskurar", 81: "Kraftiga skurar", 82: "Skyfall",
-      95: "Åska", 96: "Åska & hagel"
+      const options = { weekday: 'short', day: 'numeric', month: 'short' };
+      document.getElementById('date').textContent = now.toLocaleDateString('sv-SE', options);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Värnamo koordinater & väderkodning
+    const LAT = 57.183;
+    const LON = 14.041;
+
+    const weatherMeta = {
+      0:  { text: "Klar himmel",  icon: "☀️" },
+      1:  { text: "Mest klart",   icon: "🌤️" },
+      2:  { text: "Halvklart",    icon: "⛅" },
+      3:  { text: "Mulet",        icon: "☁️" },
+      45: { text: "Dimma",        icon: "🌫️" },
+      48: { text: "Rimfrost",     icon: "🌫️" },
+      51: { text: "Duggregn",     icon: "🌦️" },
+      61: { text: "Lätt regn",    icon: "🌧️" },
+      63: { text: "Regn",         icon: "🌧️" },
+      65: { text: "Skyfall",      icon: "🌧️" },
+      71: { text: "Lätt snö",     icon: "🌨️" },
+      73: { text: "Snöfall",      icon: "❄️" },
+      75: { text: "Ymnig snö",    icon: "❄️" },
+      95: { text: "Åskväder",     icon: "⛈️" }
     };
 
-    async function loadWeather() {
+    function getWeatherMeta(code) {
+      return weatherMeta[code] || { text: "Omväxlande", icon: "🌤️" };
+    }
+
+    function getWindDirection(deg) {
+      const dirs = ['N', 'NO', 'O', 'SO', 'S', 'SV', 'V', 'NV'];
+      return dirs[Math.round(deg / 45) % 8];
+    }
+
+    async function fetchWeather() {
       try {
-        const response = await fetch(
-          "https://api.open-meteo.com/v1/forecast?latitude=57.18&longitude=14.04&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&wind_speed_unit=ms"
-        );
-        if (!response.ok) throw new Error("Väder kunde ej hämtas");
-        
-        const data = await response.json();
-        const cur = data.current;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FBerlin&forecast_days=6&wind_speed_unit=ms`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-        document.getElementById('temp-display').innerText = `${Math.round(cur.temperature_2m)}°`;
-        document.getElementById('apparent-display').innerText = `${Math.round(cur.apparent_temperature)}°C`;
-        document.getElementById('wind-display').innerText = `${cur.wind_speed_10m} m/s`;
-        document.getElementById('humidity-display').innerText = `${cur.relative_humidity_2m}%`;
-        document.getElementById('condition-display').innerText = WEATHER_TEXTS[cur.weather_code] || "Varierande";
-        document.getElementById('weather-sync-time').innerText = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+        // Nuvarande väder
+        const curr = data.current;
+        const currMeta = getWeatherMeta(curr.weather_code);
+        document.getElementById('temp').textContent = `${Math.round(curr.temperature_2m)}°C`;
+        document.getElementById('weather-text').textContent = `${currMeta.icon} ${currMeta.text}`;
+        document.getElementById('wind').textContent = `${curr.wind_speed_10m.toFixed(1)} m/s`;
+        document.getElementById('humidity').textContent = `${curr.relative_humidity_2m}%`;
+        document.getElementById('precip').textContent = `${curr.precipitation} mm`;
+        document.getElementById('wind-dir').textContent = getWindDirection(curr.wind_direction_10m);
+
+        // 5-dagarsprognos (index 1 t.o.m 5, dvs kommande 5 dagar)
+        const daily = data.daily;
+        const container = document.getElementById('forecast-container');
+        container.innerHTML = '';
+
+        for (let i = 1; i <= 5; i++) {
+          const date = new Date(daily.time[i]);
+          const dayName = date.toLocaleDateString('sv-SE', { weekday: 'short' }).replace('.', '');
+          const meta = getWeatherMeta(daily.weather_code[i]);
+          const maxT = Math.round(daily.temperature_2m_max[i]);
+          const minT = Math.round(daily.temperature_2m_min[i]);
+
+          const card = document.createElement('div');
+          card.className = 'forecast-day';
+          card.innerHTML = `
+            <div class="fc-name">${dayName}</div>
+            <div class="fc-icon">${meta.icon}</div>
+            <div class="fc-temps">
+              <span class="fc-max">${maxT}°</span>
+              <br>
+              <span class="fc-min">${minT}°</span>
+            </div>
+          `;
+          container.appendChild(card);
+        }
       } catch (err) {
-        document.getElementById('condition-display').innerText = "Ej tillgängligt";
+        document.getElementById('weather-text').textContent = "Signalfel";
       }
     }
-    loadWeather();
-    setInterval(loadWeather, 10 * 60 * 1000);
 
-    // 3. HEMSTYRNING / GOOGLE ASSISTANT KOPPLING VIA WEBHOOKS
-    // Klistra in dina egna Webhook-länkar här (t.ex. från IFTTT som styr Google Assistant/Smart Life)
-    const COMMAND_HOOKS = {
-      light_on: "",
-      light_off: "",
-      scene_cozy: "",
-      scene_leave: ""
-    };
+    fetchWeather();
+    setInterval(fetchWeather, 600000);
 
-    function sendDeviceCommand(key) {
-      const indicator = document.getElementById('hub-indicator');
-      const url = COMMAND_HOOKS[key];
-
-      indicator.innerText = "Kopplar...";
-      indicator.className = "text-xs text-amber-300 font-bold";
-
-      if (!url) {
-        // Kör en klick-bekräftelse om du inte lagt in några externa URL:er än
-        setTimeout(() => {
-          indicator.innerText = "Skickat (Demo)";
-          setTimeout(() => {
-            indicator.innerText = "Redo";
-            indicator.className = "text-xs text-amber-500/80";
-          }, 2000);
-        }, 300);
-        return;
-      }
-
-      fetch(url, { method: 'POST', mode: 'no-cors' })
-        .then(() => {
-          indicator.innerText = "Signal sänd!";
-          setTimeout(() => {
-            indicator.innerText = "Redo";
-            indicator.className = "text-xs text-amber-500/80";
-          }, 2000);
-        })
-        .catch(() => {
-          indicator.innerText = "Kunde ej nå";
-          setTimeout(() => {
-            indicator.innerText = "Redo";
-            indicator.className = "text-xs text-amber-500/80";
-          }, 2500);
-        });
-    }
-
-    // 4. HÅLL SKÄRMEN VAKEN
-    if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').catch(() => {});
+    function toggleSwitch(element) {
+      element.classList.toggle('active');
+      const statusText = element.querySelector('.btn-status-text');
+      statusText.textContent = element.classList.contains('active') ? 'TILL' : 'FRÅN';
     }
   </script>
 </body>
