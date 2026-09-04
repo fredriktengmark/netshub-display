@@ -28,6 +28,7 @@
 </head>
 <body class="p-4 flex flex-col justify-between box-border">
 
+  <!-- TOP BAR: KLOCKA & DATUM -->
   <header class="western-panel rounded-lg px-6 py-3 flex items-center justify-between">
     <div>
       <div id="time" class="text-6xl font-western text-amber-500 tracking-wider">--:--</div>
@@ -39,16 +40,18 @@
     </div>
   </header>
 
+  <!-- MITTENSEKTION -->
   <main class="grid grid-cols-3 gap-4 my-auto h-[340px]">
     
+    <!-- 1. VÄDER -->
     <div class="western-panel rounded-lg p-4 flex flex-col justify-between">
       <div class="border-b border-amber-900/50 pb-1">
-        <h2 class="text-amber-500 font-western text-lg tracking-wide">Väder (SMHI)</h2>
-        <span class="text-xs text-stone-400">Värnamo Omnejd</span>
+        <h2 class="text-amber-500 font-western text-lg tracking-wide">Väder</h2>
+        <span class="text-xs text-stone-400" id="weather-source">Hämtar data...</span>
       </div>
       <div class="my-auto text-center">
         <div id="weather-temp" class="text-5xl font-western text-stone-100">--°C</div>
-        <div id="weather-desc" class="text-sm text-amber-300/80 mt-2">Hämtar data...</div>
+        <div id="weather-desc" class="text-sm text-amber-300/80 mt-2">Läser in...</div>
       </div>
       <div class="text-xs text-stone-400 flex justify-between border-t border-amber-900/40 pt-2">
         <span>Vind: <strong id="weather-wind" class="text-stone-200">-- m/s</strong></span>
@@ -56,6 +59,7 @@
       </div>
     </div>
 
+    <!-- 2. ELPRIS (SE3) -->
     <div class="western-panel rounded-lg p-4 flex flex-col justify-between">
       <div class="border-b border-amber-900/50 pb-1 flex justify-between items-end">
         <h2 class="text-amber-500 font-western text-lg tracking-wide">Spotpris</h2>
@@ -71,22 +75,24 @@
       </div>
     </div>
 
+    <!-- 3. WEBRADIO (COUNTRY) -->
     <div class="western-panel rounded-lg p-4 flex flex-col justify-between">
       <div class="border-b border-amber-900/50 pb-1">
         <h2 class="text-amber-500 font-western text-lg tracking-wide">Saloon Radio</h2>
-        <span class="text-xs text-stone-400">Go Country 105</span>
+        <span class="text-xs text-stone-400">Live Country Stream</span>
       </div>
       <div class="my-auto flex flex-col items-center">
-        <audio id="radio-audio" preload="none">
-          <source src="https://stream.revma.ihrhls.com/zc7477" type="audio/mpeg">
+        <!-- Direkt HTTPS Icecast MP3-ström med öppna CORS-headers -->
+        <audio id="radio-audio" preload="none" crossorigin="anonymous">
+          <source src="https://ais-sa2.cdnstream1.com/1976_128.mp3" type="audio/mpeg">
         </audio>
-        <button id="radio-btn" onclick="toggleRadio()" class="w-20 h-20 rounded-full border-2 border-amber-600 bg-amber-950/60 hover:bg-amber-900/80 active:scale-95 flex items-center justify-center transition shadow-lg">
+        <button id="radio-btn" onclick="toggleRadio()" class="w-20 h-20 rounded-full border-2 border-amber-600 bg-amber-950/60 hover:bg-amber-900/80 active:scale-95 flex items-center justify-center transition shadow-lg cursor-pointer">
           <span id="radio-icon" class="text-amber-400 text-3xl ml-1">▶</span>
         </button>
         <span id="radio-status" class="text-xs text-stone-400 mt-3">Avstängd</span>
       </div>
       <div class="text-[11px] text-stone-500 text-center border-t border-amber-900/40 pt-2">
-        Klicka för att starta ljudström
+        Tryck för att starta / pausa
       </div>
     </div>
 
@@ -106,38 +112,66 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. SMHI VÄDER (Koordinater för Värnamo/Småland: Lat 57.18, Lon 14.04)
-    const SMHI_WEATHER_CODES = {
+    // 2. VÄDER (SMHI MED AUTOMATISK OPEN-METEO FALLBACK)
+    const SMHI_CODES = {
       1: "Klart", 2: "Mestadels klart", 3: "Halvklart", 4: "Halvmulet",
       5: "Molnigt", 6: "Mulet", 7: "Dimma", 8: "Lätta regnskurar",
       9: "Måttliga regnskurar", 10: "Kraftiga regnskurar", 11: "Åskskurar",
-      18: "Lätt regn", 19: "Måttligt regn", 20: "Kraftigt regn"
+      18: "Lätt regn", 19: "Måttligt regn", 20: "Kraftigt regn",
+      25: "Lätt snöfall", 26: "Måttligt snöfall", 27: "Ymnigt snöfall"
+    };
+
+    const WMO_CODES = {
+      0: "Klart", 1: "Mestadels klart", 2: "Halvklart", 3: "Mulet",
+      45: "Dimma", 51: "Lätt duggregn", 61: "Lätt regn", 63: "Måttligt regn",
+      65: "Kraftigt regn", 71: "Lätt snö", 73: "Snöfall", 95: "Åska"
     };
 
     async function fetchWeather() {
+      const lat = "57.183300";
+      const lon = "14.041600";
+      
+      // Försök SMHI först
       try {
-        const res = await fetch("https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/14.04/lat/57.18/data.json");
+        const res = await fetch(`https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`);
+        if (!res.ok) throw new Error("SMHI fel");
         const data = await res.json();
-        const firstForecast = data.timeSeries[0];
+        const point = data.timeSeries[0];
         
-        const getParam = (name) => firstForecast.parameters.find(p => p.name === name)?.values[0];
-        
-        const temp = Math.round(getParam('t'));
-        const wind = getParam('ws');
-        const symbol = getParam('Wsymb2');
+        const getVal = (name) => point.parameters.find(p => p.name === name)?.values[0];
+        const temp = Math.round(getVal('t'));
+        const wind = getVal('ws');
+        const symbol = getVal('Wsymb2');
 
         document.getElementById('weather-temp').innerText = `${temp}°C`;
         document.getElementById('weather-wind').innerText = `${wind} m/s`;
-        document.getElementById('weather-desc').innerText = SMHI_WEATHER_CODES[symbol] || "Växlande molnighet";
+        document.getElementById('weather-desc').innerText = SMHI_CODES[symbol] || "Växlande";
+        document.getElementById('weather-source').innerText = "Värnamo (SMHI)";
+        document.getElementById('weather-updated').innerText = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+        return;
+      } catch (e) {
+        console.warn("SMHI svarade inte, byter till fallback...");
+      }
+
+      // Fallback: Open-Meteo (garanterat CORS-öppet och stabilt)
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=57.18&longitude=14.04&current=temperature_2m,weather_code,wind_speed_10m&wind_speed_unit=ms`);
+        const data = await res.json();
+        const cur = data.current;
+
+        document.getElementById('weather-temp').innerText = `${Math.round(cur.temperature_2m)}°C`;
+        document.getElementById('weather-wind').innerText = `${cur.wind_speed_10m} m/s`;
+        document.getElementById('weather-desc').innerText = WMO_CODES[cur.weather_code] || "Klart";
+        document.getElementById('weather-source').innerText = "Värnamo";
         document.getElementById('weather-updated').innerText = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
       } catch (err) {
-        document.getElementById('weather-desc').innerText = "Kunde ej hämta väder";
+        document.getElementById('weather-desc').innerText = "Kunde ej ladda väder";
       }
     }
     fetchWeather();
-    setInterval(fetchWeather, 10 * 60 * 1000); // Var 10:e minut
+    setInterval(fetchWeather, 10 * 60 * 1000);
 
-    // 3. ELPRISER (SE3 - Södra Mellansverige)
+    // 3. ELPRISER (SE3)
     async function fetchPowerPrice() {
       const now = new Date();
       const year = now.getFullYear();
@@ -146,9 +180,9 @@
       
       try {
         const res = await fetch(`https://www.elprisetjustnu.se/api/v1/prices/${year}/${month}-${day}_SE3.json`);
+        if (!res.ok) throw new Error("Kunde inte hämta elpris");
         const prices = await res.json();
 
-        // Konvertera SEK/kWh till Öre/kWh
         const currentHour = now.getHours();
         const currentData = prices.find(p => new Date(p.time_start).getHours() === currentHour) || prices[0];
         const oreValues = prices.map(p => Math.round(p.SEK_per_kWh * 100));
@@ -157,11 +191,11 @@
         document.getElementById('price-min').innerText = `${Math.min(...oreValues)} öre`;
         document.getElementById('price-max').innerText = `${Math.max(...oreValues)} öre`;
       } catch (err) {
-        document.getElementById('price-current').innerText = "N/A";
+        document.getElementById('price-current').innerText = "--";
       }
     }
     fetchPowerPrice();
-    setInterval(fetchPowerPrice, 15 * 60 * 1000); // Var 15:e minut
+    setInterval(fetchPowerPrice, 15 * 60 * 1000);
 
     // 4. WEBRADIO
     const audio = document.getElementById('radio-audio');
@@ -171,13 +205,16 @@
 
     function toggleRadio() {
       if (audio.paused) {
+        radioStatus.innerText = "Ansluter...";
         audio.play().then(() => {
           radioIcon.innerText = "❚❚";
           radioIcon.classList.remove('ml-1');
           radioStatus.innerText = "Spelar nu...";
           radioStatus.classList.add('text-amber-400');
-        }).catch(() => {
+        }).catch((err) => {
+          console.error("Ljudfel:", err);
           radioStatus.innerText = "Kunde ej ansluta";
+          radioStatus.classList.remove('text-amber-400');
         });
       } else {
         audio.pause();
@@ -188,7 +225,7 @@
       }
     }
 
-    // 5. FÖRHINDRA AVSTÄNGNING (WAKE LOCK API)
+    // 5. SKÄRMLÅS (WAKE LOCK)
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').catch(() => {});
     }
