@@ -49,14 +49,14 @@
     </div>
   </header>
 
-  <!-- MITTENSEKTION: 2 KOLUMNER -->
+  <!-- MITTENSEKTION: VÄDER & HEMSTYRNING -->
   <main class="grid grid-cols-2 gap-4 my-auto h-[350px]">
     
     <!-- 1. VÄDER (OPEN-METEO) -->
     <div class="western-panel rounded-lg p-5 flex flex-col justify-between">
       <div class="border-b border-amber-900/50 pb-2 flex justify-between items-baseline">
         <h2 class="text-amber-500 font-western text-xl tracking-wide">Väder</h2>
-        <span class="text-xs text-stone-400">Värnamo</span>
+        <span class="text-xs text-stone-400">Lokalt</span>
       </div>
 
       <div class="flex items-center justify-around my-auto">
@@ -72,48 +72,48 @@
       </div>
 
       <div class="text-xs text-stone-500 flex justify-between border-t border-amber-900/40 pt-2">
-        <span>Källa: Open-Meteo DWD</span>
+        <span>Källa: Open-Meteo</span>
         <span id="weather-updated">--:--</span>
       </div>
     </div>
 
-    <!-- 2. HEMSTYRNING -->
+    <!-- 2. HEMSTYRNING (WEBHOOKS) -->
     <div class="western-panel rounded-lg p-5 flex flex-col justify-between">
       <div class="border-b border-amber-900/50 pb-2 flex justify-between items-baseline">
         <h2 class="text-amber-500 font-western text-xl tracking-wide">Hemstyrning</h2>
         <span id="status-msg" class="text-xs text-amber-400/80">Redo</span>
       </div>
 
-      <!-- SNABBKNAPPAR -->
       <div class="grid grid-cols-2 gap-3 my-auto">
-        <button onclick="triggerDevice('lights_on')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow">
+        <button onclick="triggerDevice('lights_on')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
           <span class="text-amber-500 font-bold text-sm">💡 Tänd Belysning</span>
           <span class="text-[11px] text-stone-400 mt-1">Alla rum</span>
         </button>
 
-        <button onclick="triggerDevice('lights_off')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow">
+        <button onclick="triggerDevice('lights_off')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
           <span class="text-stone-400 font-bold text-sm">🌙 Släck Allt</span>
           <span class="text-[11px] text-stone-500 mt-1">Nattläge</span>
         </button>
 
-        <button onclick="triggerDevice('scene_evening')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow">
+        <button onclick="triggerDevice('scene_evening')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
           <span class="text-amber-400 font-bold text-sm">🔥 Mysbelysning</span>
           <span class="text-[11px] text-stone-400 mt-1">Dämpat sken</span>
         </button>
 
-        <button onclick="triggerDevice('scene_out')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow">
+        <button onclick="triggerDevice('scene_out')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
           <span class="text-amber-600 font-bold text-sm">🚪 Hejdå-läge</span>
           <span class="text-[11px] text-stone-400 mt-1">Lås & släck</span>
         </button>
       </div>
 
       <div class="text-[11px] text-stone-500 text-center border-t border-amber-900/40 pt-2">
-        Kopplad till HTTP Webhooks
+        HTTP Webhooks
       </div>
     </div>
 
   </main>
 
+  <!-- STATUSRAD -->
   <footer class="text-center text-[10px] text-amber-900 tracking-widest uppercase">
     Standby Screen • Automated Kiosk Mode
   </footer>
@@ -128,7 +128,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 2. VÄDER (OPEN-METEO WMO-KODER)
+    // 2. VÄDER (OPEN-METEO)
     const WMO_SV = {
       0: "Klart", 1: "Mestadels klart", 2: "Halvklart", 3: "Mulet",
       45: "Dimma", 48: "Rimfrost/dimma", 51: "Lätt duggregn", 53: "Duggregn",
@@ -158,8 +158,8 @@
     fetchWeather();
     setInterval(fetchWeather, 10 * 60 * 1000);
 
-    // 3. HEMSTYRNING VIA WEBHOOKS
-    // Ersätt URL:erna nedan med dina egna IFTTT-, Home Assistant- eller Zapier-webhooks
+    // 3. HEMSTYRNING
+    // Skriv in webbadresser till dina egna IFTTT/Home Assistant-webhooks här vid behov
     const WEBHOOK_URLS = {
       lights_on: "",
       lights_off: "",
@@ -171,24 +171,24 @@
       const status = document.getElementById('status-msg');
       const url = WEBHOOK_URLS[actionKey];
 
-      status.innerText = "Skickar kommando...";
+      status.innerText = "Skickar signal...";
 
       if (!url) {
-        // Simulering om ingen URL har angetts i koden än
+        // Kör ett simulerat tryck om inga URL:er är ifyllda än
         setTimeout(() => {
-          status.innerText = "Kommando utfört (Demo)";
+          status.innerText = "Signal skickad (Demo)";
           setTimeout(() => status.innerText = "Redo", 2500);
-        }, 300);
+        }, 250);
         return;
       }
 
       fetch(url, { method: 'POST', mode: 'no-cors' })
         .then(() => {
-          status.innerText = "Signal skickad!";
+          status.innerText = "Kommando skickat!";
           setTimeout(() => status.innerText = "Redo", 2500);
         })
         .catch(() => {
-          status.innerText = "Fel vid anrop";
+          status.innerText = "Kunde inte ansluta";
           setTimeout(() => status.innerText = "Redo", 2500);
         });
     }
