@@ -3,197 +3,243 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=1024, height=600, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Hub Dashboard</title>
+  <title>Western Outpost Hub</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
     body {
       width: 1024px;
       height: 600px;
+      margin: 0;
+      padding: 16px;
       overflow: hidden;
       user-select: none;
-      background-color: #120d0a;
+      background-color: #0d0907;
       color: #dfd2be;
       font-family: 'Special Elite', monospace;
     }
-    .font-western { font-family: 'Rye', serif; }
-    .western-panel {
-      background-color: #1c140e;
-      border: 2px solid #5c3a21;
-      box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 4px 6px rgba(0,0,0,0.6);
+    .font-western {
+      font-family: 'Rye', serif;
     }
-    .western-btn {
-      background-color: #2b1a10;
-      border: 1px solid #784725;
-      transition: all 0.15s ease-in-out;
+    .saloon-card {
+      background: radial-gradient(circle at top left, #241710, #150e0a);
+      border: 2px solid #543319;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 6px 12px rgba(0,0,0,0.7);
     }
-    .western-btn:active {
-      transform: scale(0.96);
-      background-color: #4a2814;
+    .action-btn {
+      background: linear-gradient(180deg, #331e13 0%, #1c100a 100%);
+      border: 1px solid #7c4822;
+      transition: transform 0.1s, border-color 0.1s, background-color 0.1s;
+    }
+    .action-btn:active {
+      transform: scale(0.97);
+      border-color: #f59e0b;
+      background: #472615;
     }
   </style>
 </head>
-<body class="p-4 flex flex-col justify-between box-border">
+<body class="flex flex-col justify-between h-full">
 
-  <!-- TOP BAR: KLOCKA & DATUM -->
-  <header class="western-panel rounded-lg px-6 py-3 flex items-center justify-between">
+  <header class="saloon-card rounded-lg px-8 py-3 flex items-center justify-between">
     <div>
-      <div id="time" class="text-6xl font-western text-amber-500 tracking-wider">--:--</div>
-      <div id="date" class="text-base text-amber-200/70 capitalize mt-1">Laddar datum...</div>
+      <div id="live-clock" class="text-6xl font-western text-amber-500 tracking-wider">--:--</div>
+      <div id="live-date" class="text-sm text-amber-200/60 capitalize mt-1 tracking-wide">Hämtar datum...</div>
     </div>
     <div class="text-right">
-      <span class="text-xs uppercase tracking-widest text-amber-600 block">Outpost Hub</span>
-      <span class="text-sm text-stone-400">Småland • Central</span>
+      <div class="text-xs uppercase tracking-widest text-amber-600 font-bold">Western Kiosk</div>
+      <div class="text-sm text-stone-400 mt-1">Värnamo • Sverige</div>
     </div>
   </header>
 
-  <!-- MITTENSEKTION: VÄDER & HEMSTYRNING -->
-  <main class="grid grid-cols-2 gap-4 my-auto h-[350px]">
-    
-    <!-- 1. VÄDER (OPEN-METEO) -->
-    <div class="western-panel rounded-lg p-5 flex flex-col justify-between">
-      <div class="border-b border-amber-900/50 pb-2 flex justify-between items-baseline">
-        <h2 class="text-amber-500 font-western text-xl tracking-wide">Väder</h2>
-        <span class="text-xs text-stone-400">Lokalt</span>
+  <main class="grid grid-cols-2 gap-4 h-[370px]">
+
+    <section class="saloon-card rounded-lg p-6 flex flex-col justify-between">
+      <div class="border-b border-amber-900/40 pb-2 flex justify-between items-center">
+        <h2 class="text-amber-500 font-western text-xl tracking-wide">Väderläge</h2>
+        <span id="weather-status-tag" class="text-xs text-stone-500">Live</span>
       </div>
 
-      <div class="flex items-center justify-around my-auto">
-        <div class="text-center">
-          <div id="weather-temp" class="text-6xl font-western text-stone-100">--°C</div>
-          <div id="weather-desc" class="text-base text-amber-300/90 mt-2">Hämtar data...</div>
+      <div class="grid grid-cols-2 items-center my-auto">
+        <div class="text-center border-r border-amber-900/30 pr-4">
+          <div id="temp-display" class="text-7xl font-western text-stone-100 tracking-tight">--°</div>
+          <div id="condition-display" class="text-base text-amber-400/90 mt-2 font-western tracking-wide">Läser av...</div>
         </div>
-        <div class="space-y-2 text-sm text-stone-300 border-l border-amber-900/40 pl-6">
-          <div>Vind: <strong id="weather-wind" class="text-stone-100">-- m/s</strong></div>
-          <div>Luftfuktighet: <strong id="weather-humidity" class="text-stone-100">--%</strong></div>
-          <div>Känns som: <strong id="weather-apparent" class="text-stone-100">--°C</strong></div>
+        
+        <div class="pl-6 space-y-3 text-sm text-stone-300">
+          <div class="flex justify-between">
+            <span class="text-stone-500">Känns som:</span>
+            <strong id="apparent-display" class="text-stone-200">--°C</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-stone-500">Vindhastighet:</span>
+            <strong id="wind-display" class="text-stone-200">-- m/s</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-stone-500">Fuktighet:</span>
+            <strong id="humidity-display" class="text-stone-200">--%</strong>
+          </div>
         </div>
       </div>
 
-      <div class="text-xs text-stone-500 flex justify-between border-t border-amber-900/40 pt-2">
+      <div class="border-t border-amber-900/40 pt-2 flex justify-between text-xs text-stone-500">
         <span>Källa: Open-Meteo</span>
-        <span id="weather-updated">--:--</span>
+        <span>Uppdaterad: <span id="weather-sync-time" class="text-stone-400">--:--</span></span>
       </div>
-    </div>
+    </section>
 
-    <!-- 2. HEMSTYRNING (WEBHOOKS) -->
-    <div class="western-panel rounded-lg p-5 flex flex-col justify-between">
-      <div class="border-b border-amber-900/50 pb-2 flex justify-between items-baseline">
+    <section class="saloon-card rounded-lg p-6 flex flex-col justify-between">
+      <div class="border-b border-amber-900/40 pb-2 flex justify-between items-center">
         <h2 class="text-amber-500 font-western text-xl tracking-wide">Hemstyrning</h2>
-        <span id="status-msg" class="text-xs text-amber-400/80">Redo</span>
+        <span id="hub-indicator" class="text-xs text-amber-500/80">Redo</span>
       </div>
 
       <div class="grid grid-cols-2 gap-3 my-auto">
-        <button onclick="triggerDevice('lights_on')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
-          <span class="text-amber-500 font-bold text-sm">💡 Tänd Belysning</span>
-          <span class="text-[11px] text-stone-400 mt-1">Alla rum</span>
+        <button onclick="sendDeviceCommand('light_on')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">💡</span>
+            <span class="text-amber-400 font-bold text-sm tracking-wide">Tänd Allt</span>
+          </div>
+          <span class="text-[11px] text-stone-400">Huvudbelysning På</span>
         </button>
 
-        <button onclick="triggerDevice('lights_off')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
-          <span class="text-stone-400 font-bold text-sm">🌙 Släck Allt</span>
-          <span class="text-[11px] text-stone-500 mt-1">Nattläge</span>
+        <button onclick="sendDeviceCommand('light_off')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">🌙</span>
+            <span class="text-stone-300 font-bold text-sm tracking-wide">Släck Allt</span>
+          </div>
+          <span class="text-[11px] text-stone-500">Stäng av belysning</span>
         </button>
 
-        <button onclick="triggerDevice('scene_evening')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
-          <span class="text-amber-400 font-bold text-sm">🔥 Mysbelysning</span>
-          <span class="text-[11px] text-stone-400 mt-1">Dämpat sken</span>
+        <button onclick="sendDeviceCommand('scene_cozy')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">🔥</span>
+            <span class="text-amber-500 font-bold text-sm tracking-wide">Myskväll</span>
+          </div>
+          <span class="text-[11px] text-stone-400">Dämpade lampor</span>
         </button>
 
-        <button onclick="triggerDevice('scene_out')" class="western-btn p-3 rounded text-left flex flex-col justify-between shadow cursor-pointer">
-          <span class="text-amber-600 font-bold text-sm">🚪 Hejdå-läge</span>
-          <span class="text-[11px] text-stone-400 mt-1">Lås & släck</span>
+        <button onclick="sendDeviceCommand('scene_leave')" class="action-btn p-4 rounded text-left flex flex-col justify-between h-24 shadow cursor-pointer">
+          <div class="flex items-center space-x-2">
+            <span class="text-xl">🚪</span>
+            <span class="text-amber-600 font-bold text-sm tracking-wide">Lämna Huset</span>
+          </div>
+          <span class="text-[11px] text-stone-400">Släck & säkra</span>
         </button>
       </div>
 
-      <div class="text-[11px] text-stone-500 text-center border-t border-amber-900/40 pt-2">
-        HTTP Webhooks
+      <div class="border-t border-amber-900/40 pt-2 text-center text-xs text-stone-500">
+        Google Assistant / HTTP Webhook Trigger
       </div>
-    </div>
+    </section>
 
   </main>
 
-  <!-- STATUSRAD -->
-  <footer class="text-center text-[10px] text-amber-900 tracking-widest uppercase">
-    Standby Screen • Automated Kiosk Mode
+  <footer class="text-center text-[10px] text-amber-950 uppercase tracking-widest">
+    Kiosk View • 1024x600 • Standby Mode
   </footer>
 
   <script>
     // 1. KLOCKA & DATUM
-    function updateClock() {
+    function refreshClock() {
       const now = new Date();
-      document.getElementById('time').innerText = now.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('date').innerText = now.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long' });
+      document.getElementById('live-clock').innerText = now.toLocaleTimeString('sv-SE', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      document.getElementById('live-date').innerText = now.toLocaleDateString('sv-SE', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      });
     }
-    setInterval(updateClock, 1000);
-    updateClock();
+    setInterval(refreshClock, 1000);
+    refreshClock();
 
-    // 2. VÄDER (OPEN-METEO)
-    const WMO_SV = {
+    // 2. VÄDER (OPEN-METEO UTAN NYCKEL ELLER CORS-STRUL)
+    const WEATHER_TEXTS = {
       0: "Klart", 1: "Mestadels klart", 2: "Halvklart", 3: "Mulet",
-      45: "Dimma", 48: "Rimfrost/dimma", 51: "Lätt duggregn", 53: "Duggregn",
-      55: "Tätt duggregn", 61: "Lätt regn", 63: "Regn", 65: "Kraftigt regn",
-      71: "Lätt snöfall", 73: "Snöfall", 75: "Kraftigt snöfall",
-      80: "Lätta skurar", 81: "Regnskurar", 82: "Kraftiga skurar",
-      95: "Åska", 96: "Åska m. hagel"
+      45: "Dimma", 48: "Rimfrost", 51: "Lätt duggregn", 53: "Duggregn",
+      55: "Kraftigt duggregn", 61: "Lätt regn", 63: "Regn", 65: "Kraftigt regn",
+      71: "Lätt snö", 73: "Snöfall", 75: "Ymnigt snöfall",
+      80: "Regnskurar", 81: "Kraftiga skurar", 82: "Skyfall",
+      95: "Åska", 96: "Åska & hagel"
     };
 
-    async function fetchWeather() {
+    async function loadWeather() {
       try {
-        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=57.18&longitude=14.04&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&wind_speed_unit=ms");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const response = await fetch(
+          "https://api.open-meteo.com/v1/forecast?latitude=57.18&longitude=14.04&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&wind_speed_unit=ms"
+        );
+        if (!response.ok) throw new Error("Väder kunde ej hämtas");
+        
+        const data = await response.json();
         const cur = data.current;
 
-        document.getElementById('weather-temp').innerText = `${Math.round(cur.temperature_2m)}°C`;
-        document.getElementById('weather-apparent').innerText = `${Math.round(cur.apparent_temperature)}°C`;
-        document.getElementById('weather-wind').innerText = `${cur.wind_speed_10m} m/s`;
-        document.getElementById('weather-humidity').innerText = `${cur.relative_humidity_2m}%`;
-        document.getElementById('weather-desc').innerText = WMO_SV[cur.weather_code] || "Klart";
-        document.getElementById('weather-updated').innerText = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('temp-display').innerText = `${Math.round(cur.temperature_2m)}°`;
+        document.getElementById('apparent-display').innerText = `${Math.round(cur.apparent_temperature)}°C`;
+        document.getElementById('wind-display').innerText = `${cur.wind_speed_10m} m/s`;
+        document.getElementById('humidity-display').innerText = `${cur.relative_humidity_2m}%`;
+        document.getElementById('condition-display').innerText = WEATHER_TEXTS[cur.weather_code] || "Varierande";
+        document.getElementById('weather-sync-time').innerText = new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
       } catch (err) {
-        document.getElementById('weather-desc').innerText = "Kunde ej hämta data";
+        document.getElementById('condition-display').innerText = "Ej tillgängligt";
       }
     }
-    fetchWeather();
-    setInterval(fetchWeather, 10 * 60 * 1000);
+    loadWeather();
+    setInterval(loadWeather, 10 * 60 * 1000);
 
-    // 3. HEMSTYRNING
-    // Skriv in webbadresser till dina egna IFTTT/Home Assistant-webhooks här vid behov
-    const WEBHOOK_URLS = {
-      lights_on: "",
-      lights_off: "",
-      scene_evening: "",
-      scene_out: ""
+    // 3. HEMSTYRNING / GOOGLE ASSISTANT KOPPLING VIA WEBHOOKS
+    // Klistra in dina egna Webhook-länkar här (t.ex. från IFTTT som styr Google Assistant/Smart Life)
+    const COMMAND_HOOKS = {
+      light_on: "",
+      light_off: "",
+      scene_cozy: "",
+      scene_leave: ""
     };
 
-    function triggerDevice(actionKey) {
-      const status = document.getElementById('status-msg');
-      const url = WEBHOOK_URLS[actionKey];
+    function sendDeviceCommand(key) {
+      const indicator = document.getElementById('hub-indicator');
+      const url = COMMAND_HOOKS[key];
 
-      status.innerText = "Skickar signal...";
+      indicator.innerText = "Kopplar...";
+      indicator.className = "text-xs text-amber-300 font-bold";
 
       if (!url) {
-        // Kör ett simulerat tryck om inga URL:er är ifyllda än
+        // Kör en klick-bekräftelse om du inte lagt in några externa URL:er än
         setTimeout(() => {
-          status.innerText = "Signal skickad (Demo)";
-          setTimeout(() => status.innerText = "Redo", 2500);
-        }, 250);
+          indicator.innerText = "Skickat (Demo)";
+          setTimeout(() => {
+            indicator.innerText = "Redo";
+            indicator.className = "text-xs text-amber-500/80";
+          }, 2000);
+        }, 300);
         return;
       }
 
       fetch(url, { method: 'POST', mode: 'no-cors' })
         .then(() => {
-          status.innerText = "Kommando skickat!";
-          setTimeout(() => status.innerText = "Redo", 2500);
+          indicator.innerText = "Signal sänd!";
+          setTimeout(() => {
+            indicator.innerText = "Redo";
+            indicator.className = "text-xs text-amber-500/80";
+          }, 2000);
         })
         .catch(() => {
-          status.innerText = "Kunde inte ansluta";
-          setTimeout(() => status.innerText = "Redo", 2500);
+          indicator.innerText = "Kunde ej nå";
+          setTimeout(() => {
+            indicator.innerText = "Redo";
+            indicator.className = "text-xs text-amber-500/80";
+          }, 2500);
         });
     }
 
-    // 4. SCREEN WAKE LOCK
+    // 4. HÅLL SKÄRMEN VAKEN
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').catch(() => {});
     }
